@@ -1,0 +1,5 @@
+.DS_Store
+*.xcuserstate
+ios/**/xcuserdata/
+ios/**/DerivedData/
+site/
