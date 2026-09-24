@@ -2,12 +2,13 @@ import SwiftUI
 
 @main
 struct DoYourSafetyChecksApp: App {
+  @StateObject private var shop = Shop()
+
   var body: some Scene {
     WindowGroup {
-      WebView()
-        .ignoresSafeArea()
-        .preferredColorScheme(.dark)
-        .statusBarHidden(false)
+      RootView()
+        .environmentObject(shop)
+        .task { await shop.load() }
     }
   }
 }

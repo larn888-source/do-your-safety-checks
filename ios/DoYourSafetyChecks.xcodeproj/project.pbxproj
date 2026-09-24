@@ -10,7 +10,9 @@
 		A10000000000000000000001 /* DoYourSafetyChecksApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000011 /* DoYourSafetyChecksApp.swift */; };
 		A10000000000000000000002 /* WebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000012 /* WebView.swift */; };
 		A10000000000000000000003 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000013 /* Assets.xcassets */; };
-		A10000000000000000000004 /* www in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000014 /* www */; };
+		A10000000000000000000005 /* Shop.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000015 /* Shop.swift */; };
+		A10000000000000000000006 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000016 /* PaywallView.swift */; };
+		A10000000000000000000007 /* Products.storekit in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000017 /* Products.storekit */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -18,7 +20,9 @@
 		A10000000000000000000011 /* DoYourSafetyChecksApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DoYourSafetyChecksApp.swift; sourceTree = "<group>"; };
 		A10000000000000000000012 /* WebView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebView.swift; sourceTree = "<group>"; };
 		A10000000000000000000013 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		A10000000000000000000014 /* www */ = {isa = PBXFileReference; lastKnownFileType = folder; path = www; sourceTree = "<group>"; };
+		A10000000000000000000015 /* Shop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shop.swift; sourceTree = "<group>"; };
+		A10000000000000000000016 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
+		A10000000000000000000017 /* Products.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; name = Products.storekit; path = Products.storekit; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -36,6 +40,7 @@
 			isa = PBXGroup;
 			children = (
 				A10000000000000000000031 /* DoYourSafetyChecks */,
+				A10000000000000000000017 /* Products.storekit */,
 				A10000000000000000000032 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -45,6 +50,8 @@
 			children = (
 				A10000000000000000000011 /* DoYourSafetyChecksApp.swift */,
 				A10000000000000000000012 /* WebView.swift */,
+				A10000000000000000000015 /* Shop.swift */,
+				A10000000000000000000016 /* PaywallView.swift */,
 				A10000000000000000000013 /* Assets.xcassets */,
 				A10000000000000000000014 /* www */,
 			);
@@ -115,6 +122,7 @@
 			files = (
 				A10000000000000000000003 /* Assets.xcassets in Resources */,
 				A10000000000000000000004 /* www in Resources */,
+				A10000000000000000000007 /* Products.storekit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -149,6 +157,8 @@
 			files = (
 				A10000000000000000000001 /* DoYourSafetyChecksApp.swift in Sources */,
 				A10000000000000000000002 /* WebView.swift in Sources */,
+				A10000000000000000000005 /* Shop.swift in Sources */,
+				A10000000000000000000006 /* PaywallView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

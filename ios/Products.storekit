@@ -1,0 +1,49 @@
+{
+  "appPolicies" : {
+    "eula" : "",
+    "policies" : [
+      {
+        "locale" : "en_GB",
+        "policyText" : ""
+      }
+    ]
+  },
+  "identifier" : "A2C8E1F04B1A4D9E8C3F7A6B5D4E3C21",
+  "nonRenewableSubscriptions" : [
+
+  ],
+  "products" : [
+    {
+      "displayPrice" : "0.99",
+      "familyShareable" : false,
+      "internalID" : "B3D9F2A15C2B5E0F9D48B7C6E5D4F321",
+      "localizations" : [
+        {
+          "description" : "Unlock Do Your Safety Checks forever. One payment, no subscription.",
+          "displayName" : "Lifetime unlock",
+          "locale" : "en_GB"
+        }
+      ],
+      "productID" : "com.doyoursafetychecks.app.lifetime",
+      "referenceName" : "Lifetime Unlock",
+      "type" : "NonConsumable"
+    }
+  ],
+  "settings" : {
+    "_applicationInternalID" : "0",
+    "_developerTeamID" : "",
+    "_failTransactionsEnabled" : false,
+    "_locale" : "en_GB",
+    "_storefront" : "GBR",
+    "_storeKitErrors" : [
+
+    ]
+  },
+  "subscriptionGroups" : [
+
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+}
