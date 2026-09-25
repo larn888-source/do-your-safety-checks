@@ -147,12 +147,16 @@ function startNewCheck(unitId) {
   state.selectedUnitId = unit.id;
   state.showErrors = false;
   state.errorMessage = "";
+  state.promptMileage = false;
   state.updatingRecordId = null;
+  state.editingExisting = false;
   state.addingKind = null;
   state.addingId = null;
   state.form = {
     date: "",
     startTime: "",
+    startMileage: "",
+    endMileage: "",
     units: [
       {
         id: unit.id,
@@ -299,32 +303,38 @@ function renderChecks() {
     ? `<div class="error-banner">${escapeHtml(state.errorMessage)}</div>`
     : "";
 
-  const visibleUnits = state.updatingRecordId && state.addingKind === "unit"
+  const visibleUnits = state.addingKind === "unit"
     ? state.form.units.filter((unit) => unit.id === state.addingId)
-    : state.updatingRecordId
+    : state.addingKind === "trailer"
       ? []
       : state.form.units;
-  const visibleTrailers = state.updatingRecordId && state.addingKind === "trailer"
+  const visibleTrailers = state.addingKind === "trailer"
     ? state.form.trailers.filter((trailer) => trailer.id === state.addingId)
-    : state.updatingRecordId
+    : state.addingKind === "unit"
       ? []
       : state.form.trailers;
 
-  const unitsHtml = visibleUnits.map((unit, unitIndex) => `
+  const unitsHtml = visibleUnits.map((unit) => {
+    const unitIndex = state.form.units.findIndex((u) => u.id === unit.id);
+    return `
     <section class="card">
-      <h2>HGV Tractor Unit</h2>
+      <div class="topbar">
+        <h2>Unit ${unitIndex + 1}</h2>
+        ${!state.addingKind && state.form.units.length > 1 ? `<button type="button" class="btn-danger" data-remove-unit="${unit.id}">Remove</button>` : ""}
+      </div>
       <label>Unit reg
         <input data-unit-reg="${unit.id}" type="text" value="${escapeHtml(unit.reg)}" style="text-transform:uppercase" />
       </label>
       ${UNIT_CATEGORIES.map((cat, catIndex) => renderCategory(unit.categories[catIndex], cat, `unit:${unit.id}:${cat.id}`, unitIndex === 0 && catIndex === 0)).join("")}
     </section>
-  `).join("");
+  `;
+  }).join("");
 
   const trailersHtml = visibleTrailers.map((trailer, i) => `
     <section class="card">
       <div class="topbar">
         <h2>Trailer ${state.form.trailers.findIndex((t) => t.id === trailer.id) + 1}</h2>
-        ${!state.updatingRecordId && state.form.trailers.length > 1 ? `<button type="button" class="btn-danger" data-remove-trailer="${trailer.id}">Remove</button>` : ""}
+        ${!state.addingKind && state.form.trailers.length > 1 ? `<button type="button" class="btn-danger" data-remove-trailer="${trailer.id}">Remove</button>` : ""}
       </div>
       <label>Trailer number
         <input data-trailer-number="${trailer.id}" type="text" value="${escapeHtml(trailer.number)}" class="${state.showErrors && !trailer.number.trim() ? "invalid" : ""}" />
@@ -337,30 +347,46 @@ function renderChecks() {
     <div class="topbar">
       <div>
         <p class="eyebrow">Do Your Safety Checks</p>
-        <h1>${state.updatingRecordId ? "Add to saved check" : "Daily walkaround"}</h1>
+        <h1>${state.updatingRecordId ? (state.addingKind && !state.editingExisting ? "Add to saved check" : "Edit this check") : "Daily walkaround"}</h1>
       </div>
       <button class="btn-secondary" type="button" id="back-select">Back</button>
     </div>
     ${error}
-    ${state.updatingRecordId ? "" : `<div class="card stack">
+    ${state.addingKind ? "" : `<div class="card stack">
       <label>Date
         <input id="check-date" type="date" value="${state.form.date}" class="${state.showErrors && !state.form.date ? "invalid" : ""}" />
       </label>
       <label>Start time
         <input id="check-time" type="time" value="${state.form.startTime}" class="${state.showErrors && !state.form.startTime ? "invalid" : ""}" />
       </label>
+      <label>Start mileage (km)
+        <input id="start-mileage" type="text" inputmode="decimal" placeholder="Optional" value="${escapeHtml(state.form.startMileage)}" class="${state.promptMileage && !String(state.form.startMileage || "").trim() ? "invalid" : ""}" />
+      </label>
+      <label>End mileage (km)
+        <input id="end-mileage" type="text" inputmode="decimal" placeholder="Optional" value="${escapeHtml(state.form.endMileage)}" class="${state.promptMileage && !String(state.form.endMileage || "").trim() ? "invalid" : ""}" />
+      </label>
     </div>`}
     ${unitsHtml}
     ${trailersHtml}
     <div class="action-bar">
-      <button class="btn-primary" type="button" id="continue-save">Continue</button>
+      ${state.promptMileage ? `
+        <p class="mileage-note">Mileage is missing. Add it above, or continue without it.</p>
+        <button class="btn-green" type="button" id="continue-without-mileage">Continue</button>
+      ` : `
+        <button class="btn-primary" type="button" id="continue-save">Continue</button>
+      `}
     </div>
   `;
+}
+
+function allItemsChecked(cat) {
+  return cat.checks.length > 0 && cat.checks.every(Boolean);
 }
 
 function renderCategory(saved, cat, key) {
   if (!saved.problems) saved.problems = cat.items.map(() => "");
   const invalid = state.showErrors && categoryIncomplete(saved);
+  const allChecked = allItemsChecked(saved);
   const items = cat.items.map((label, i) => {
     const note = saved.problems[i] || "";
     const open = Boolean(note.trim()) || saved.problemsOpen && saved.problemsOpen[i];
@@ -387,6 +413,10 @@ function renderCategory(saved, cat, key) {
     <div class="category ${invalid ? "error" : ""}">
       <div class="category-head">
         <h3>${escapeHtml(cat.title)}</h3>
+        <div class="check-item select-all ${allChecked ? "checked" : ""}" data-select-all="${key}" role="checkbox" aria-checked="${allChecked ? "true" : "false"}">
+          <span class="box"></span>
+          <span>Select all</span>
+        </div>
         <label class="file-btn">Take photo of problem
           <input type="file" accept="image/*" capture="environment" data-photo="${key}" />
         </label>
@@ -395,6 +425,17 @@ function renderCategory(saved, cat, key) {
       <div class="photos">${photos}</div>
     </div>
   `;
+}
+
+function syncSelectAll(categoryEl, cat) {
+  if (!categoryEl) return;
+  const selectAll = categoryEl.querySelector("[data-select-all]");
+  if (selectAll) {
+    const on = allItemsChecked(cat);
+    selectAll.classList.toggle("checked", on);
+    selectAll.setAttribute("aria-checked", on ? "true" : "false");
+  }
+  if (state.showErrors) categoryEl.classList.toggle("error", categoryIncomplete(cat));
 }
 
 function bindChecks() {
@@ -412,10 +453,26 @@ function bindChecks() {
   });
   const dateInput = document.getElementById("check-date");
   const timeInput = document.getElementById("check-time");
+  const startMileageInput = document.getElementById("start-mileage");
+  const endMileageInput = document.getElementById("end-mileage");
   if (dateInput && timeInput) {
     ["change", "input", "blur"].forEach((evt) => {
       dateInput.addEventListener(evt, () => { state.form.date = dateInput.value; });
       timeInput.addEventListener(evt, () => { state.form.startTime = timeInput.value; });
+    });
+  }
+  if (startMileageInput && endMileageInput) {
+    const saveMileage = () => {
+      state.form.startMileage = startMileageInput.value;
+      state.form.endMileage = endMileageInput.value;
+      if (state.promptMileage) {
+        startMileageInput.classList.toggle("invalid", !startMileageInput.value.trim());
+        endMileageInput.classList.toggle("invalid", !endMileageInput.value.trim());
+      }
+    };
+    ["change", "input", "blur"].forEach((evt) => {
+      startMileageInput.addEventListener(evt, saveMileage);
+      endMileageInput.addEventListener(evt, saveMileage);
     });
   }
   document.querySelectorAll("[data-unit-reg]").forEach((input) => {
@@ -447,6 +504,29 @@ function bindChecks() {
       if (block && state.showErrors) {
         block.classList.toggle("error", !itemComplete(cat, Number(index)));
       }
+      syncSelectAll(row.closest(".category"), cat);
+    });
+  });
+  document.querySelectorAll("[data-select-all]").forEach((row) => {
+    row.addEventListener("click", () => {
+      if (window.__dyscDragging) return;
+      const [kind, id, catId] = row.dataset.selectAll.split(":");
+      const owner = kind === "unit"
+        ? state.form.units.find((u) => u.id === id)
+        : state.form.trailers.find((t) => t.id === id);
+      const cat = owner.categories.find((c) => c.id === catId);
+      const next = !allItemsChecked(cat);
+      cat.checks = cat.checks.map(() => next);
+      const categoryEl = row.closest(".category");
+      categoryEl.querySelectorAll("[data-check]").forEach((item, i) => {
+        item.classList.toggle("checked", next);
+        item.setAttribute("aria-checked", next ? "true" : "false");
+        const block = item.closest(".check-block");
+        if (block && state.showErrors) {
+          block.classList.toggle("error", !itemComplete(cat, i));
+        }
+      });
+      syncSelectAll(categoryEl, cat);
     });
   });
   document.querySelectorAll("[data-toggle-problem]").forEach((btn) => {
@@ -518,7 +598,15 @@ function bindChecks() {
       render();
     });
   });
-  document.getElementById("continue-save").addEventListener("click", () => {
+  document.querySelectorAll("[data-remove-unit]").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      if (state.form.units.length < 2) return;
+      state.form.units = state.form.units.filter((u) => u.id !== btn.dataset.removeUnit);
+      render();
+    });
+  });
+  const continueSave = document.getElementById("continue-save");
+  if (continueSave) continueSave.addEventListener("click", () => {
     const result = validateForm();
     if (!result.ok) {
       state.showErrors = true;
@@ -528,11 +616,60 @@ function bindChecks() {
       if (firstError) firstError.scrollIntoView({ behavior: "smooth", block: "center" });
       return;
     }
-    state.showErrors = false;
-    state.errorMessage = "";
-    state.screen = "save";
-    render();
+    if (!state.addingKind && mileageMissing()) {
+      state.promptMileage = true;
+      render();
+      const field = document.getElementById(!String(state.form.startMileage || "").trim() ? "start-mileage" : "end-mileage");
+      if (field) {
+        field.scrollIntoView({ behavior: "smooth", block: "center" });
+        field.focus();
+      }
+      return;
+    }
+    goToSave();
   });
+  const continueWithoutMileage = document.getElementById("continue-without-mileage");
+  if (continueWithoutMileage) {
+    continueWithoutMileage.addEventListener("click", () => goToSave());
+  }
+}
+
+function goToSave() {
+  state.promptMileage = false;
+  state.showErrors = false;
+  state.errorMessage = "";
+  state.screen = "save";
+  render();
+}
+
+function mileageMissing() {
+  return !String(state.form.startMileage || "").trim() || !String(state.form.endMileage || "").trim();
+}
+
+function formatDate(value) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value || ""));
+  if (!match) return String(value || "");
+  const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+  return `${Number(match[3])} ${months[Number(match[2]) - 1]} ${match[1]}`;
+}
+
+function checkHasProblems(record) {
+  const owners = [...(record.units || []), ...(record.trailers || [])];
+  return owners.some((owner) => (owner.categories || []).some((cat) => {
+    if ((cat.problems || []).some((note) => String(note || "").trim())) return true;
+    return (cat.items || []).some((item) => String(item.problem || "").trim());
+  }));
+}
+
+function problemBanner(record) {
+  return checkHasProblems(record)
+    ? `<p class="status-problem">YOU HAVE PROBLEMS REPORTED</p>`
+    : `<p class="status-clear">NO PROBLEM 😊</p>`;
+}
+
+function mileageLine(label, value) {
+  const text = String(value || "").trim();
+  return `${label}: ${text ? `${text} km` : "Not recorded"}`;
 }
 
 function validateForm() {
@@ -563,9 +700,12 @@ function renderSave() {
       <button class="btn-secondary" type="button" id="back-checks">Back</button>
     </div>
     <div class="card">
+      ${problemBanner(state.form)}
       <p><strong>${escapeHtml(state.store.profile.name)}</strong> · ${escapeHtml(state.store.profile.company)}</p>
-      <p>Date: ${escapeHtml(state.form.date)}</p>
+      <p>Date: ${escapeHtml(formatDate(state.form.date))}</p>
       <p>Start time: ${escapeHtml(state.form.startTime)}</p>
+      <p>${escapeHtml(mileageLine("Start mileage", state.form.startMileage))}</p>
+      <p>${escapeHtml(mileageLine("End mileage", state.form.endMileage))}</p>
       <p>Units: ${state.form.units.map((u) => escapeHtml(u.reg)).join(", ")}</p>
       <p>Trailers: ${state.form.trailers.map((t) => escapeHtml(t.number)).join(", ")}</p>
     </div>
@@ -591,6 +731,8 @@ function bindSave() {
       savedAt: new Date().toISOString(),
       date: state.form.date,
       startTime: state.form.startTime,
+      startMileage: String(state.form.startMileage || "").trim(),
+      endMileage: String(state.form.endMileage || "").trim(),
       driver: profile.name,
       company: profile.company,
       units: state.form.units,
@@ -624,7 +766,7 @@ function bindSave() {
 function renderHistory() {
   const dates = [...new Set(state.store.records.map((r) => r.date))].sort().reverse();
   const dateOptions = [`<option value="">Select a date</option>`]
-    .concat(dates.map((d) => `<option value="${d}" ${d === state.historyDate ? "selected" : ""}>${d}</option>`))
+    .concat(dates.map((d) => `<option value="${d}" ${d === state.historyDate ? "selected" : ""}>${formatDate(d)}</option>`))
     .join("");
 
   const matching = state.store.records.filter((r) => r.date === state.historyDate);
@@ -633,6 +775,7 @@ function renderHistory() {
       <button type="button" data-open-record="${r.id}">
         ${escapeHtml(r.startTime)} · ${r.units.map((u) => escapeHtml(u.reg)).join(", ")}
       </button>
+      <button type="button" class="btn-secondary" data-edit-record="${r.id}">Edit</button>
       <button type="button" class="btn-delete-save" data-delete-record="${r.id}">${state.pendingDeleteId === r.id ? "Tap again to delete" : "Delete"}</button>
     </div>
   `).join("");
@@ -691,8 +834,16 @@ function renderRecord(record) {
 
   return `
     <div class="card">
-      <h2>${escapeHtml(record.date)} · ${escapeHtml(record.startTime)}</h2>
+      ${problemBanner(record)}
+      <h2>${escapeHtml(formatDate(record.date))} · ${escapeHtml(record.startTime)}</h2>
       <p>${escapeHtml(record.driver)} · ${escapeHtml(record.company)}</p>
+      <p>${escapeHtml(mileageLine("Start mileage", record.startMileage))}</p>
+      <p>${escapeHtml(mileageLine("End mileage", record.endMileage))}</p>
+      <div class="record-actions">
+        <button type="button" class="btn-primary" id="edit-check">Edit this check</button>
+        <button type="button" class="btn-primary" id="copy-pdf">Share PDF</button>
+      </div>
+      <p id="send-status" class="muted hidden"></p>
       <button type="button" class="btn-delete-save" data-delete-record="${record.id}">${state.pendingDeleteId === record.id ? "Tap again to delete" : "Delete this save"}</button>
       <div class="stack" style="margin:16px 0 8px">
         ${unitMenus}
@@ -700,7 +851,7 @@ function renderRecord(record) {
       </div>
       <div class="btn-row" style="margin-top:12px">
         <button type="button" class="btn-secondary" id="add-unit-to-save">Add unit</button>
-        ${record.trailers.length < 5 ? `<button type="button" class="btn-secondary" id="add-trailer-to-save">Add trailer</button>` : ""}
+        <button type="button" class="btn-secondary" id="add-trailer-to-save">Add trailer</button>
       </div>
     </div>
   `;
@@ -763,6 +914,15 @@ function bindHistory() {
       render();
     });
   });
+  document.querySelectorAll("[data-edit-record]").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      state.viewingRecordId = btn.dataset.editRecord;
+      startEditRecord();
+    });
+  });
+  const editCheck = document.getElementById("edit-check");
+  if (editCheck) editCheck.addEventListener("click", () => startEditRecord());
   document.querySelectorAll("[data-delete-record]").forEach((btn) => {
     btn.addEventListener("click", (e) => {
       e.preventDefault();
@@ -778,21 +938,165 @@ function bindHistory() {
   if (addTrailerToSave) {
     addTrailerToSave.addEventListener("click", () => startAddToSave("trailer"));
   }
+  const copyPdf = document.getElementById("copy-pdf");
+  if (copyPdf) copyPdf.addEventListener("click", () => copyRecordPdf());
+}
+
+function recordForShare(record) {
+  const sections = (owner, categories) => categories.map((cat, i) => {
+    const saved = owner.categories[i] || { checks: [], problems: [], photos: [] };
+    return {
+      title: cat.title,
+      items: cat.items.map((label, n) => ({
+        label,
+        ok: Boolean(saved.checks[n]),
+        problem: String((saved.problems || [])[n] || "").trim()
+      })),
+      photoCount: (saved.photos || []).length
+    };
+  });
+  return {
+    date: formatDate(record.date),
+    startTime: record.startTime,
+    startMileage: record.startMileage || "",
+    endMileage: record.endMileage || "",
+    driver: record.driver,
+    company: record.company,
+    units: record.units.map((unit) => ({
+      title: unit.reg || "Unit",
+      categories: sections(unit, UNIT_CATEGORIES)
+    })),
+    trailers: record.trailers.map((trailer) => ({
+      title: trailer.number || "Trailer",
+      categories: sections(trailer, TRAILER_CATEGORIES)
+    }))
+  };
+}
+
+function setSendStatus(message) {
+  const status = document.getElementById("send-status");
+  if (!status) return;
+  status.textContent = message;
+  status.classList.toggle("hidden", !message);
+}
+
+async function copyRecordPdf() {
+  const record = state.store.records.find((r) => r.id === state.viewingRecordId);
+  if (!record) return;
+  const payload = recordForShare(record);
+  const native = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.nativeApp;
+  if (native) {
+    native.postMessage({ action: "copyPdf", record: payload });
+    setSendStatus("Choose WhatsApp or another app. The PDF is sent as a file, not pasted.");
+    return;
+  }
+  try {
+    const bytes = buildCheckPdf(payload);
+    const file = new File([bytes], pdfFileName(payload), { type: "application/pdf" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: file.name });
+      setSendStatus("");
+      return;
+    }
+    const blob = new Blob([bytes], { type: "application/pdf" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = pdfFileName(payload);
+    link.click();
+    URL.revokeObjectURL(url);
+    setSendStatus("PDF saved. Attach that file wherever you want to send it.");
+  } catch (error) {
+    if (error && error.name === "AbortError") return;
+    setSendStatus("Could not share the PDF.");
+  }
+}
+
+function pdfFileName(record) {
+  const reg = (record.units[0] && record.units[0].title) || "check";
+  return `safety-check-${record.date || "record"}-${reg}.pdf`.replace(/[^\w.-]+/g, "-");
+}
+
+function buildCheckPdf(record) {
+  const lines = [
+    "Do Your Safety Checks",
+    `${record.date || ""}  ${record.startTime || ""}`,
+    `${record.driver || ""}  ·  ${record.company || ""}`,
+    checkHasProblems(record) ? "YOU HAVE PROBLEMS REPORTED" : "NO PROBLEM",
+    mileageLine("Start mileage", record.startMileage),
+    mileageLine("End mileage", record.endMileage),
+    ""
+  ];
+  const addOwner = (heading, owner) => {
+    lines.push(heading + ": " + (owner.title || ""));
+    owner.categories.forEach((cat) => {
+      lines.push(cat.title);
+      cat.items.forEach((item) => {
+        if (item.problem) lines.push("PROBLEM — " + item.label, item.problem);
+        else lines.push((item.ok ? "OK" : "—") + " — " + item.label);
+      });
+      if (cat.photoCount) lines.push("Photos: " + cat.photoCount);
+    });
+    lines.push("");
+  };
+  record.units.forEach((unit, i) => addOwner("Unit " + (i + 1), unit));
+  record.trailers.forEach((trailer, i) => addOwner("Trailer " + (i + 1), trailer));
+  const text = lines.join("\n");
+  const escaped = text.replaceAll("\\", "\\\\").replaceAll("(", "\\(").replaceAll(")", "\\)");
+  const content = `BT /F1 11 Tf 48 780 Td 14 TL (${escaped.split("\n").join(") ' (")}) Tj ET`;
+  const objects = [
+    "1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n",
+    "2 0 obj << /Type /Pages /Count 1 /Kids [3 0 R] >> endobj\n",
+    "3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >> endobj\n",
+    `4 0 obj << /Length ${content.length} >> stream\n${content}\nendstream endobj\n`,
+    "5 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj\n"
+  ];
+  let pdf = "%PDF-1.4\n";
+  const offsets = [0];
+  objects.forEach((obj) => {
+    offsets.push(pdf.length);
+    pdf += obj;
+  });
+  const xref = pdf.length;
+  pdf += `xref\n0 ${objects.length + 1}\n0000000000 65535 f \n`;
+  offsets.slice(1).forEach((offset) => {
+    pdf += `${String(offset).padStart(10, "0")} 00000 n \n`;
+  });
+  pdf += `trailer << /Size ${objects.length + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  return new TextEncoder().encode(pdf);
+}
+
+function loadRecordForm(record) {
+  state.updatingRecordId = record.id;
+  state.showErrors = false;
+  state.errorMessage = "";
+  state.promptMileage = false;
+  state.form = {
+    date: record.date,
+    startTime: record.startTime,
+    startMileage: record.startMileage || "",
+    endMileage: record.endMileage || "",
+    units: JSON.parse(JSON.stringify(record.units)),
+    trailers: JSON.parse(JSON.stringify(record.trailers))
+  };
+}
+
+function startEditRecord() {
+  const record = state.store.records.find((r) => r.id === state.viewingRecordId);
+  if (!record) return;
+  loadRecordForm(record);
+  state.editingExisting = true;
+  state.addingKind = null;
+  state.addingId = null;
+  state.screen = "checks";
+  render();
 }
 
 function startAddToSave(kind) {
   const record = state.store.records.find((r) => r.id === state.viewingRecordId);
   if (!record) return;
-  if (kind === "trailer" && record.trailers.length >= 5) return;
-  state.updatingRecordId = record.id;
-  state.showErrors = false;
-  state.errorMessage = "";
-  state.form = {
-    date: record.date,
-    startTime: record.startTime,
-    units: JSON.parse(JSON.stringify(record.units)),
-    trailers: JSON.parse(JSON.stringify(record.trailers))
-  };
+  loadRecordForm(record);
+  state.editingExisting = false;
   if (kind === "unit") {
     const extra = { id: uid(), reg: "", categories: emptyChecks(UNIT_CATEGORIES) };
     state.form.units.push(extra);
@@ -872,8 +1176,15 @@ function enableDragScroll() {
 
   const yOf = (e) => (e.touches ? e.touches[0].clientY : e.clientY);
 
+  const editableTarget = (target) => {
+    const el = target && target.nodeType === 1 ? target : target && target.parentElement;
+    return el && el.closest("input, textarea, select, label");
+  };
+
   const down = (e) => {
-    if (e.target.closest("input, textarea, select, button, summary, details, .file-btn, .action-bar, .btn-problem, .btn-delete-save")) return;
+    if (editableTarget(e.target)) return;
+    const el = e.target && e.target.nodeType === 1 ? e.target : e.target && e.target.parentElement;
+    if (el && el.closest("button, summary, details, .file-btn, .action-bar, .btn-problem, .btn-delete-save")) return;
     tracking = true;
     dragged = false;
     startY = yOf(e);
@@ -906,6 +1217,7 @@ function enableDragScroll() {
   document.addEventListener("touchmove", move, { passive: false });
   document.addEventListener("touchend", up);
   document.addEventListener("click", (e) => {
+    if (editableTarget(e.target)) return;
     if (!window.__dyscDragging && !dragged) return;
     e.preventDefault();
     e.stopPropagation();

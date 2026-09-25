@@ -89,6 +89,12 @@ h3 {
   gap: 12px;
 }
 
+.record-actions {
+  display: grid;
+  gap: 16px;
+  margin: 16px 0;
+}
+
 label {
   display: grid;
   gap: 6px;
@@ -109,6 +115,8 @@ select {
   padding: 12px;
   font-size: 16px;
   color-scheme: dark;
+  scroll-margin-bottom: 140px;
+  touch-action: manipulation;
 }
 
 input.invalid {
@@ -205,6 +213,12 @@ button, .file-btn {
   display: grid;
   gap: 10px;
   margin-bottom: 10px;
+}
+
+.check-item.select-all {
+  font-weight: 700;
+  background: var(--bg-raised);
+  margin: 0;
 }
 
 .check-item {
@@ -313,6 +327,23 @@ button, .file-btn {
   white-space: pre-wrap;
 }
 
+.status-problem,
+.status-clear {
+  margin: 0 0 12px;
+  text-align: center;
+  font-size: 1.15rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+}
+
+.status-problem {
+  color: var(--red);
+}
+
+.status-clear {
+  color: var(--green);
+}
+
 .error-banner {
   background: rgba(226, 75, 75, 0.16);
   color: #ffd6d6;
@@ -385,6 +416,11 @@ button, .file-btn {
 
 .saved-row [data-open-record] {
   flex: 1;
+}
+
+.saved-row [data-edit-record] {
+  width: auto;
+  flex: 0 0 auto;
 }
 
 .saved-row .btn-delete-save {
@@ -480,8 +516,15 @@ button, .file-btn {
   pointer-events: none;
 }
 
-.action-bar button {
+.action-bar button,
+.mileage-note {
   pointer-events: auto;
+}
+
+.mileage-note {
+  margin: 0 0 8px;
+  text-align: center;
+  font-weight: 700;
 }
 
 .hidden {
