@@ -1,4 +1,4 @@
-const CACHE = "dysc-web-v1";
+const CACHE = "dysc-web-v2";
 const ASSETS = [
   "./",
   "./index.html",
