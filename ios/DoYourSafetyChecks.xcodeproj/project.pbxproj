@@ -148,7 +148,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "ROOT=\"${PROJECT_DIR}/..\"\nWWW=\"${PROJECT_DIR}/DoYourSafetyChecks/www\"\nmkdir -p \"$WWW\"\ncp \"$ROOT/index.html\" \"$ROOT/styles.css\" \"$ROOT/app.js\" \"$ROOT/icon.svg\" \"$ROOT/manifest.webmanifest\" \"$ROOT/apple-touch-icon.png\" \"$ROOT/icon-192.png\" \"$ROOT/icon-512.png\" \"$WWW/\"\n";
+			shellScript = "ROOT=\"${PROJECT_DIR}/..\"\nWWW=\"${PROJECT_DIR}/DoYourSafetyChecks/www\"\nmkdir -p \"$WWW\"\ncp \"$ROOT/index.html\" \"$ROOT/styles.css\" \"$ROOT/i18n.js\" \"$ROOT/app.js\" \"$ROOT/sw.js\" \"$ROOT/icon.svg\" \"$ROOT/manifest.webmanifest\" \"$ROOT/apple-touch-icon.png\" \"$ROOT/icon-192.png\" \"$ROOT/icon-512.png\" \"$WWW/\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -216,7 +216,7 @@
 				DEVELOPMENT_TEAM = 9B3YJPJG4B;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Safety Checks";
+				INFOPLIST_KEY_CFBundleDisplayName = "HGV walkaround";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_LSApplicationQueriesSchemes = (
 					whatsapp,
@@ -260,7 +260,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 9B3YJPJG4B;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = "Safety Checks";
+				INFOPLIST_KEY_CFBundleDisplayName = "HGV walkaround";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_LSApplicationQueriesSchemes = (
 					whatsapp,

@@ -1,8 +1,9 @@
-const CACHE = "dysc-web-v3";
+const CACHE = "dysc-web-v9";
 const ASSETS = [
   "./",
   "./index.html",
   "./styles.css",
+  "./i18n.js",
   "./app.js",
   "./manifest.webmanifest",
   "./icon-192.png",

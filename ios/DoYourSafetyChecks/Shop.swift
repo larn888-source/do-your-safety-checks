@@ -4,31 +4,13 @@ import StoreKit
 @MainActor
 final class Shop: ObservableObject {
   static let productID = "com.doyoursafetychecks.app.lifetime"
-  static let trialDays = 30
-  private static let firstOpenKey = "dysc.firstOpen"
 
   @Published var purchased = false
   @Published var product: Product?
   @Published var message = ""
   @Published var busy = false
 
-  var trialDaysLeft: Int {
-    let start = firstOpenDate()
-    let end = Calendar.current.date(byAdding: .day, value: Self.trialDays, to: start) ?? start
-    let days = Calendar.current.dateComponents([.day], from: Date(), to: end).day ?? 0
-    return max(0, days)
-  }
-
-  var trialActive: Bool {
-    trialDaysLeft > 0
-  }
-
-  var unlocked: Bool {
-    purchased || trialActive
-  }
-
   func load() async {
-    recordFirstOpenIfNeeded()
     await refreshPurchase()
     await loadProduct()
     await listenForTransactions()
@@ -113,18 +95,5 @@ final class Shop: ObservableObject {
     case .verified(let transaction):
       return transaction
     }
-  }
-
-  private func firstOpenDate() -> Date {
-    if let saved = UserDefaults.standard.object(forKey: Self.firstOpenKey) as? Date {
-      return saved
-    }
-    let now = Date()
-    UserDefaults.standard.set(now, forKey: Self.firstOpenKey)
-    return now
-  }
-
-  private func recordFirstOpenIfNeeded() {
-    _ = firstOpenDate()
   }
 }

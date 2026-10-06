@@ -7,11 +7,11 @@ struct PaywallView: View {
     ZStack {
       Color(red: 11 / 255, green: 18 / 255, blue: 32 / 255).ignoresSafeArea()
       VStack(spacing: 18) {
-        Text("DO YOUR SAFETY CHECKS")
+        Text("HGV WALKAROUND")
           .font(.caption.weight(.bold))
           .tracking(1.6)
           .foregroundStyle(Color(red: 61 / 255, green: 139 / 255, blue: 253 / 255))
-        Text("Your 30-day trial has ended")
+        Text("Unlock the app")
           .font(.title2.bold())
           .multilineTextAlignment(.center)
           .foregroundStyle(.white)
@@ -52,27 +52,11 @@ struct PaywallView: View {
 }
 
 struct RootView: View {
-  @EnvironmentObject var shop: Shop
+  @ObservedObject private var theme = AppTheme.shared
 
   var body: some View {
-    ZStack(alignment: .top) {
-      if shop.unlocked {
-        WebView()
-          .ignoresSafeArea()
-      } else {
-        PaywallView()
-      }
-      if shop.trialActive && !shop.purchased {
-        Text("Trial: \(shop.trialDaysLeft) day\(shop.trialDaysLeft == 1 ? "" : "s") left")
-          .font(.caption.weight(.bold))
-          .padding(.horizontal, 12)
-          .padding(.vertical, 6)
-          .background(.black.opacity(0.55))
-          .clipShape(Capsule())
-          .foregroundStyle(.white)
-          .padding(.top, 8)
-      }
-    }
-    .preferredColorScheme(.dark)
+    WebView()
+      .ignoresSafeArea()
+      .preferredColorScheme(theme.scheme)
   }
 }

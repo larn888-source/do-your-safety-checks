@@ -1,6 +1,6 @@
 {
-  "name": "Do Your Safety Checks",
-  "short_name": "Safety Checks",
+  "name": "HGV walkaround",
+  "short_name": "HGV walkaround",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
