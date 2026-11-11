@@ -15,7 +15,7 @@ struct PaywallView: View {
           .font(.title2.bold())
           .multilineTextAlignment(.center)
           .foregroundStyle(.white)
-        Text("Unlock the app once for \(shop.product?.displayPrice ?? "£0.99"). This is a lifetime purchase, not a subscription.")
+        Text("Your 30-day free trial has ended. Unlock the app once for \(shop.priceText). This is a lifetime purchase, not a subscription.")
           .font(.body)
           .multilineTextAlignment(.center)
           .foregroundStyle(Color(red: 154 / 255, green: 168 / 255, blue: 195 / 255))
@@ -24,7 +24,7 @@ struct PaywallView: View {
         Button {
           Task { await shop.buy() }
         } label: {
-          Text(shop.busy ? "Please wait…" : "Buy for life \(shop.product?.displayPrice ?? "£0.99")")
+          Text(shop.busy ? "Please wait…" : "Buy for \(shop.priceText)")
             .font(.headline)
             .frame(maxWidth: .infinity)
             .padding(.vertical, 16)
@@ -52,11 +52,30 @@ struct PaywallView: View {
 }
 
 struct RootView: View {
+  @EnvironmentObject private var shop: Shop
+  @Environment(\.scenePhase) private var scenePhase
   @ObservedObject private var theme = AppTheme.shared
 
+  private let paywallEnabled = true
+
+  private var trialEnded: Bool {
+    paywallEnabled && !shop.purchased && shop.trialDaysLeft == 0
+  }
+
   var body: some View {
-    WebView()
-      .ignoresSafeArea()
-      .preferredColorScheme(theme.scheme)
+    Group {
+      if trialEnded {
+        PaywallView()
+      } else {
+        WebView()
+          .ignoresSafeArea()
+      }
+    }
+    .preferredColorScheme(trialEnded ? .dark : theme.scheme)
+    .onChange(of: scenePhase) { _, phase in
+      if phase == .active {
+        shop.refreshTrial()
+      }
+    }
   }
 }

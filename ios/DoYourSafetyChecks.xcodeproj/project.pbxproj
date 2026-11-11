@@ -13,7 +13,7 @@
 		A10000000000000000000004 /* www in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000014 /* www */; };
 		A10000000000000000000005 /* Shop.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000015 /* Shop.swift */; };
 		A10000000000000000000006 /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000016 /* PaywallView.swift */; };
-		A10000000000000000000007 /* Products.storekit in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000017 /* Products.storekit */; };
+		A10000000000000000000008 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000018 /* PrivacyInfo.xcprivacy */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,7 +24,8 @@
 		A10000000000000000000014 /* www */ = {isa = PBXFileReference; lastKnownFileType = folder; path = www; sourceTree = "<group>"; };
 		A10000000000000000000015 /* Shop.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Shop.swift; sourceTree = "<group>"; };
 		A10000000000000000000016 /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
-		A10000000000000000000017 /* Products.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; name = Products.storekit; path = Products.storekit; sourceTree = "<group>"; };
+		A10000000000000000000017 /* Products.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = Products.storekit; sourceTree = "<group>"; };
+		A10000000000000000000018 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,6 +55,7 @@
 				A10000000000000000000012 /* WebView.swift */,
 				A10000000000000000000015 /* Shop.swift */,
 				A10000000000000000000016 /* PaywallView.swift */,
+				A10000000000000000000018 /* PrivacyInfo.xcprivacy */,
 				A10000000000000000000013 /* Assets.xcassets */,
 				A10000000000000000000014 /* www */,
 			);
@@ -124,7 +126,7 @@
 			files = (
 				A10000000000000000000003 /* Assets.xcassets in Resources */,
 				A10000000000000000000004 /* www in Resources */,
-				A10000000000000000000007 /* Products.storekit in Resources */,
+				A10000000000000000000008 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -148,7 +150,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "ROOT=\"${PROJECT_DIR}/..\"\nWWW=\"${PROJECT_DIR}/DoYourSafetyChecks/www\"\nmkdir -p \"$WWW\"\ncp \"$ROOT/index.html\" \"$ROOT/styles.css\" \"$ROOT/i18n.js\" \"$ROOT/app.js\" \"$ROOT/sw.js\" \"$ROOT/icon.svg\" \"$ROOT/manifest.webmanifest\" \"$ROOT/apple-touch-icon.png\" \"$ROOT/icon-192.png\" \"$ROOT/icon-512.png\" \"$WWW/\"\n";
+			shellScript = "ROOT=\"${PROJECT_DIR}/..\"\nWWW=\"${PROJECT_DIR}/DoYourSafetyChecks/www\"\nmkdir -p \"$WWW/fonts\"\ncp \"$ROOT/index.html\" \"$ROOT/styles.css\" \"$ROOT/i18n.js\" \"$ROOT/app.js\" \"$ROOT/sw.js\" \"$ROOT/privacy.html\" \"$ROOT/manifest.webmanifest\" \"$ROOT/apple-touch-icon.png\" \"$ROOT/icon-192.png\" \"$ROOT/icon-512.png\" \"$WWW/\"\ncp \"$ROOT/fonts/bebas-neue-400.woff2\" \"$WWW/fonts/\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -212,27 +214,22 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 9B3YJPJG4B;
 				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "HGV walkaround";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
-				INFOPLIST_KEY_LSApplicationQueriesSchemes = (
-					whatsapp,
-					tg,
-					mailto,
-				);
 				INFOPLIST_KEY_LSRequiresIPhoneOS = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Take photos of problems found during the walkaround.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Used if the camera records sound.";
-				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Save defect photos with a safety check.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Attach photos of defects to a safety check.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationPortrait;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -257,26 +254,21 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				CURRENT_PROJECT_VERSION = 2;
 				DEVELOPMENT_TEAM = 9B3YJPJG4B;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "HGV walkaround";
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
-				INFOPLIST_KEY_LSApplicationQueriesSchemes = (
-					whatsapp,
-					tg,
-					mailto,
-				);
 				INFOPLIST_KEY_LSRequiresIPhoneOS = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Take photos of problems found during the walkaround.";
-				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Used if the camera records sound.";
-				INFOPLIST_KEY_NSPhotoLibraryAddUsageDescription = "Save defect photos with a safety check.";
 				INFOPLIST_KEY_NSPhotoLibraryUsageDescription = "Attach photos of defects to a safety check.";
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationPortrait;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

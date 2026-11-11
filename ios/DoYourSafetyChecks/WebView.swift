@@ -166,7 +166,7 @@ struct WebView: UIViewRepresentable {
     }
 
     func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-      let html = "<!doctype html><meta name='viewport' content='width=device-width, initial-scale=1'><body style='font-family:-apple-system;background:#0b1220;color:#fff;padding:24px'>The app failed to load. Press Play in Xcode again.<br><br>\(error.localizedDescription)</body>"
+      let html = "<!doctype html><meta name='viewport' content='width=device-width, initial-scale=1'><body style='font-family:-apple-system;background:#0b1220;color:#fff;padding:24px'>The app failed to load. Force quit it, then open it again.</body>"
       webView.loadHTMLString(html, baseURL: nil)
     }
 
@@ -200,16 +200,29 @@ struct WebView: UIViewRepresentable {
 }
 
 enum CheckPDF {
+  static func photoURLs(_ value: Any?) -> [String] {
+    if let urls = value as? [String] { return urls }
+    if let urls = value as? [Any] { return urls.compactMap { $0 as? String } }
+    return []
+  }
+
   static func hasProblems(_ record: [String: Any]) -> Bool {
     let units = record["units"] as? [[String: Any]] ?? []
     let trailers = record["trailers"] as? [[String: Any]] ?? []
     for owner in units + trailers {
+      if (owner["verdict"] as? String) == "defect" { return true }
       let categories = owner["categories"] as? [[String: Any]] ?? []
       for category in categories {
         let items = category["items"] as? [[String: Any]] ?? []
-        if items.contains(where: { !(($0["problem"] as? String) ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }) {
+        if items.contains(where: {
+          let note = (($0["problem"] as? String) ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+          let photos = CheckPDF.photoURLs($0["photos"])
+          return !note.isEmpty || photos.contains(where: { !$0.isEmpty })
+        }) {
           return true
         }
+        let photos = CheckPDF.photoURLs(category["photos"])
+        if photos.contains(where: { !$0.isEmpty }) { return true }
       }
     }
     return false
@@ -241,6 +254,18 @@ enum CheckPDF {
     if mapped.isEmpty { mapped = fallback.isEmpty ? "Saved checks" : fallback }
     if !mapped.lowercased().hasSuffix(".pdf") { mapped += ".pdf" }
     return mapped
+  }
+
+  static func image(dataURL: String) -> UIImage? {
+    guard let comma = dataURL.firstIndex(of: ",") else { return nil }
+    let meta = dataURL[..<comma].lowercased()
+    guard meta.hasPrefix("data:image/") else { return nil }
+    let payload = String(dataURL[dataURL.index(after: comma)...])
+    guard let data = Data(base64Encoded: payload, options: .ignoreUnknownCharacters),
+          let image = UIImage(data: data),
+          image.size.width > 0,
+          image.size.height > 0 else { return nil }
+    return image
   }
 
   static func data(from record: [String: Any]) -> Data {
@@ -291,6 +316,38 @@ enum CheckPDF {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         return trimmed.isEmpty ? fallback : trimmed
       }
+      func drawImage(_ image: UIImage) {
+        let maxWidth = page.width - 120
+        let maxHeight = min(280, page.height - 96)
+        let aspect = image.size.width / max(image.size.height, 1)
+        var width = maxWidth
+        var height = width / max(aspect, 0.01)
+        if height > maxHeight {
+          height = maxHeight
+          width = height * aspect
+        }
+        guard width >= 1, height >= 1 else { return }
+        newPageIfNeeded(height + 8)
+        image.draw(in: CGRect(x: 72, y: y, width: width, height: height))
+        y += height + 8
+      }
+      func drawPhotos(_ urls: [String], word: String, rtl: Bool) -> Int {
+        var drawn = 0
+        var failed = 0
+        for url in urls {
+          guard !url.isEmpty else { continue }
+          if let image = CheckPDF.image(dataURL: url) {
+            drawImage(image)
+            drawn += 1
+          } else {
+            failed += 1
+          }
+        }
+        if failed > 0 {
+          draw("\(word): \(failed)", font: body, indent: 72, rtl: rtl)
+        }
+        return drawn
+      }
       func draw(_ text: String, font: UIFont, color: UIColor = .black, indent: CGFloat = 48, rtl: Bool = false) {
         let width = page.width - indent - 48
         let paragraph = NSMutableParagraphStyle()
@@ -318,10 +375,19 @@ enum CheckPDF {
         }
         let date = CheckPDF.displayDate(record["date"] as? String ?? "")
         let time = record["startTime"] as? String ?? ""
-        let driver = record["driver"] as? String ?? ""
-        let company = record["company"] as? String ?? ""
+        let driver = (record["driver"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let company = (record["company"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+        let employee = (record["employeeNumber"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
         draw("\(date)  \(time)", font: body, rtl: rtl)
-        draw("\(driver)  ·  \(company)", font: body, rtl: rtl)
+        if !driver.isEmpty {
+          draw("\(label(record, "name", fallback: "Name")): \(driver)", font: body, rtl: rtl)
+        }
+        if !company.isEmpty {
+          draw("\(label(record, "company", fallback: "Company name")): \(company)", font: body, rtl: rtl)
+        }
+        if !employee.isEmpty {
+          draw("\(label(record, "employee", fallback: "Employee number")): \(employee)", font: body, rtl: rtl)
+        }
         if CheckPDF.hasProblems(record) {
           draw(label(record, "problems", fallback: "YOU HAVE PROBLEMS REPORTED"), font: section, color: .systemRed, rtl: rtl)
         } else {
@@ -357,19 +423,30 @@ enum CheckPDF {
             for category in categories {
               draw(category["title"] as? String ?? "", font: problem, indent: 48, rtl: rtl)
               let items = category["items"] as? [[String: Any]] ?? []
+              var placed = 0
               for item in items {
                 let itemLabel = item["label"] as? String ?? ""
-                let note = item["problem"] as? String ?? ""
-                if !note.isEmpty {
+                let note = (item["problem"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+                let photos = CheckPDF.photoURLs(item["photos"])
+                if !note.isEmpty || photos.contains(where: { !$0.isEmpty }) {
                   draw("\(problemWord) — \(itemLabel)", font: problem, color: .systemRed, indent: 60, rtl: rtl)
-                  draw(note, font: body, indent: 72, rtl: rtl)
+                  if !note.isEmpty { draw(note, font: body, indent: 72, rtl: rtl) }
+                  placed += drawPhotos(photos, word: photosWord, rtl: rtl)
                 } else {
                   let ok = item["ok"] as? Bool ?? false
                   draw("\(ok ? okWord : "—") — \(itemLabel)", font: body, indent: 60, rtl: rtl)
                 }
               }
-              let photos = category["photoCount"] as? Int ?? 0
-              if photos > 0 { draw("\(photosWord): \(photos)", font: body, indent: 60, rtl: rtl) }
+              placed += drawPhotos(CheckPDF.photoURLs(category["photos"]), word: photosWord, rtl: rtl)
+              if placed == 0 {
+                let photos = category["photoCount"] as? Int ?? 0
+                if photos > 0 { draw("\(photosWord): \(photos)", font: body, indent: 60, rtl: rtl) }
+              }
+            }
+            let verdictText = (owner["verdictText"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
+            if !verdictText.isEmpty {
+              let defect = (owner["verdict"] as? String) == "defect"
+              draw(verdictText, font: section, color: defect ? .systemRed : .systemGreen, indent: 60, rtl: rtl)
             }
           }
         }

@@ -1,4 +1,4 @@
-const CACHE = "dysc-web-v9";
+const CACHE = "dysc-web-v31";
 const ASSETS = [
   "./",
   "./index.html",
@@ -9,7 +9,8 @@ const ASSETS = [
   "./icon-192.png",
   "./icon-512.png",
   "./apple-touch-icon.png",
-  "./icon.svg"
+  "./privacy.html",
+  "./fonts/bebas-neue-400.woff2"
 ];
 
 self.addEventListener("install", (event) => {

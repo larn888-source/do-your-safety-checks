@@ -4,21 +4,42 @@ import StoreKit
 @MainActor
 final class Shop: ObservableObject {
   static let productID = "com.doyoursafetychecks.app.lifetime"
+  static let trialDays = 30
+  static let priceLabel = "£3.99"
+  private let firstOpenKey = "dysc.firstOpen"
 
   @Published var purchased = false
   @Published var product: Product?
   @Published var message = ""
   @Published var busy = false
+  @Published var trialDaysLeft = trialDays
+
+  var priceText: String {
+    product?.displayPrice ?? Self.priceLabel
+  }
 
   func load() async {
+    rememberFirstOpen()
+    refreshTrial()
     await refreshPurchase()
     await loadProduct()
     await listenForTransactions()
   }
 
+  func refreshTrial() {
+    let started = Date(timeIntervalSince1970: UserDefaults.standard.double(forKey: firstOpenKey))
+    let ends = Calendar.current.date(byAdding: .day, value: Self.trialDays, to: started) ?? started
+    let remaining = ends.timeIntervalSinceNow
+    if remaining <= 0 {
+      trialDaysLeft = 0
+    } else {
+      trialDaysLeft = max(1, Int(ceil(remaining / 86_400)))
+    }
+  }
+
   func buy() async {
     guard let product else {
-      message = "The £0.99 unlock is not available yet. It will work after the app is on the App Store."
+      message = "The unlock could not be loaded. Check your connection and try again."
       return
     }
     busy = true
@@ -56,6 +77,11 @@ final class Shop: ObservableObject {
     } catch {
       message = error.localizedDescription
     }
+  }
+
+  private func rememberFirstOpen() {
+    guard UserDefaults.standard.object(forKey: firstOpenKey) == nil else { return }
+    UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: firstOpenKey)
   }
 
   private func loadProduct() async {
